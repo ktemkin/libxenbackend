@@ -97,7 +97,7 @@ static int try_setup(struct xen_device *xendev)
     if (rc < 0 || rc >= PATH_BUFSZ)
         return -1;
 
-    if (!xs_watch(xs_handle, xendev->fe, token))
+    if (!xs_watch(xs_handle_debug, xendev->fe, token))
         return -1;
 
     set_state(xendev, XenbusStateInitialising);
@@ -135,15 +135,19 @@ static int try_connect(struct xen_device *xendev)
 
     if (xendev->fe_state != XenbusStateInitialised &&
         xendev->fe_state != XenbusStateConnected) {
+        fprintf(stderr, "Not connecting, wrong state! (%d)\n", xendev->fe_state);
         return -1;
     }
 
+    fprintf(stderr, "Connecting sounds good.\n");
     if (xenback->ops->connect) {
         rc = xenback->ops->connect(xendev->dev);
+        fprintf(stderr, "Tried connect, %d.\n", rc);
         if (rc)
             return rc;
     }
 
+    fprintf(stderr, "Connected!\n");
     set_state(xendev, XenbusStateConnected);
     return 0;
 }
@@ -187,22 +191,29 @@ check_state(struct xen_device *xendev)
     for (;;) {
 	switch (xendev->be_state) {
 	case XenbusStateUnknown:
+            fprintf(stderr, "Setup\n");
 	    rc = try_setup(xendev);
 	    break;
 	case XenbusStateInitialising:
+            fprintf(stderr, "Init\n");
 	    rc = try_init(xendev);
 	    break;
 	case XenbusStateInitWait:
+            fprintf(stderr, "Connect\n");
 	    rc = try_connect(xendev);
 	    break;
         case XenbusStateClosed:
+            fprintf(stderr, "Close\n");
             rc = try_reset(xendev);
             break;
 	default:
+            fprintf(stderr, "Failure!\n");
 	    rc = -1;
 	}
-	if (0 != rc)
+	if (0 != rc) {
+            fprintf(stderr, "Leaving the loop...\n");
 	    break;
+	}
     }
 
 }

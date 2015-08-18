@@ -62,5 +62,8 @@ struct xen_backend
 };
 
 extern struct xs_handle *xs_handle;
+extern struct xs_handle *xs_handle_watch;
+extern struct xs_handle *xs_handle_debug;
+
 
 #endif /* __BACKEND_H__ */

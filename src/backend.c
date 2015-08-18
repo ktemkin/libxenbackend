@@ -22,6 +22,7 @@
 static xc_interface *xc_handle = NULL;
 struct xs_handle *xs_handle = NULL;
 struct xs_handle *xs_handle_watch = NULL;
+struct xs_handle *xs_handle_debug = NULL;
 static char domain_path[PATH_BUFSZ];
 static int domain_path_len = 0;
 
@@ -41,6 +42,9 @@ backend_init(int backend_domid)
     xs_handle_watch = xs_open(XS_UNWATCH_FILTER);
     if (!xs_handle_watch)
         goto fail_xs;
+
+
+    xs_handle_debug = xs_open(XS_UNWATCH_FILTER);
 
     xc_handle = xc_interface_open(NULL, NULL, 0);
     if (!xc_handle)
@@ -301,8 +305,7 @@ static void update_frontend(struct xen_device *xendev, char *node)
     check_state(xendev);
 }
 
-EXTERNAL void
-backend_xenstore_handler(void *unused)
+static void debug_xenstore_magic(struct xs_handle *handle)
 {
     char **w;
     unsigned int count;
@@ -310,9 +313,7 @@ backend_xenstore_handler(void *unused)
     int rc;
     char *node;
 
-    (void)unused;
-
-    w = xs_read_watch(xs_handle_watch, &count);
+    w = xs_read_watch(handle, &count);
     if (!w)
         return;
 
@@ -345,10 +346,28 @@ backend_xenstore_handler(void *unused)
     free(w);
 }
 
+EXTERNAL void
+backend_xenstore_handler(void *unused) {
+     debug_xenstore_magic(xs_handle_watch);
+}
+
+
+EXTERNAL void
+backend_debug_xenstore_handler(void *unused) {
+     debug_xenstore_magic(xs_handle_debug);
+}
+
 EXTERNAL int
 backend_xenstore_fd(void)
 {
-    return xs_fileno(xs_handle);
+    return xs_fileno(xs_handle_watch);
+}
+
+
+EXTERNAL int
+backend_debug_xenstore_fd(void)
+{
+    return xs_fileno(xs_handle_debug);
 }
 
 EXTERNAL int
