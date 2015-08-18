@@ -21,6 +21,7 @@
 
 static xc_interface *xc_handle = NULL;
 struct xs_handle *xs_handle = NULL;
+struct xs_handle *xs_handle_watch = NULL;
 static char domain_path[PATH_BUFSZ];
 static int domain_path_len = 0;
 
@@ -29,8 +30,16 @@ backend_init(int backend_domid)
 {
     char *tmp;
 
+    //Create a XenStore connection for general queries...
     xs_handle = xs_open(XS_UNWATCH_FILTER);
     if (!xs_handle)
+        goto fail_xs;
+
+    //...and a second XenStore connection for watches,
+    //which can block their handle, preventing future XenStore
+    //accesses over that handle until the watch is read.
+    xs_handle_watch = xs_open(XS_UNWATCH_FILTER);
+    if (!xs_handle_watch)
         goto fail_xs;
 
     xc_handle = xc_interface_open(NULL, NULL, 0);
@@ -49,6 +58,9 @@ fail_domainpath:
     xc_interface_close(xc_handle);
     xc_handle = NULL;
 fail_xc:
+    xs_daemon_close(xs_handle_watch);
+    xs_handle_watch = NULL;
+fail_xs_watch:
     xs_daemon_close(xs_handle);
     xs_handle = NULL;
 fail_xs:
@@ -59,6 +71,10 @@ fail_xs:
 EXTERNAL int
 backend_close(void)
 {
+    if (xs_handle_watch)
+        xs_daemon_close(xs_handle_watch);
+    xs_handle = NULL;
+
     if (xs_handle)
         xs_daemon_close(xs_handle);
     xs_handle = NULL;
@@ -82,7 +98,7 @@ static int setup_watch(struct xen_backend *xenback, const char *type, int domid)
         return -1;
     xenback->path_len = sz;
 
-    if (!xs_watch(xs_handle, xenback->path, xenback->token)) {
+    if (!xs_watch(xs_handle_watch, xenback->path, xenback->token)) {
         return -1;
     }
 
@@ -296,7 +312,7 @@ backend_xenstore_handler(void *unused)
 
     (void)unused;
 
-    w = xs_read_watch(xs_handle, &count);
+    w = xs_read_watch(xs_handle_watch, &count);
     if (!w)
         return;
 
