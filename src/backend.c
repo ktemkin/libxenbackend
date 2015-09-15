@@ -410,6 +410,9 @@ backend_map_shared_page(xen_backend_t xenback, int devid)
     int rc;
 
     rc = xs_read_fe_int(xendev, "page-ref", &mfn);
+    /* That node can also be called "ring-ref". Trying both */
+    if (rc)
+        rc = xs_read_fe_int(xendev, "ring-ref", &mfn);
     if (rc)
         return NULL;
 
