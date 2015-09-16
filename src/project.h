@@ -106,7 +106,7 @@
 # endif
 
 #include <xen/io/xenbus.h>
-#include <xs.h>
+#include <xenstore.h>
 
 # include "xenbackend.h"
 
