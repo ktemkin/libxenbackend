@@ -447,11 +447,20 @@ backend_map_granted_ring(xen_backend_t xenback, int devid)
                                    ring, PROT_READ | PROT_WRITE);
 }
 
-EXTERNAL void
+EXTERNAL int
 backend_unmap_shared_page(xen_backend_t xenback, int devid, void *page)
 {
     (void)xenback;
     (void)devid;
-    munmap(page, XC_PAGE_SIZE);
+
+    return munmap(page, XC_PAGE_SIZE);
 }
 
+EXTERNAL int
+backend_unmap_granted_ring(xen_backend_t xenback, int devid, void *page)
+{
+    (void)xenback;
+    (void)devid;
+
+    return xc_gnttab_munmap(xcg_handle, page, 1);
+}
