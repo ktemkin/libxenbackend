@@ -48,4 +48,6 @@ int backend_evtchn_notify(xen_backend_t xenback, int devid);
 void *backend_evtchn_priv(xen_backend_t xenback, int devid);
 void backend_evtchn_handler(void *priv);
 void *backend_map_shared_page(xen_backend_t xenback, int devid);
-void backend_unmap_shared_page(xen_backend_t xenback, int devid, void *page);
+void *backend_map_granted_ring(xen_backend_t xenback, int devid);
+int backend_unmap_shared_page(xen_backend_t xenback, int devid, void *page);
+int backend_unmap_granted_ring(xen_backend_t xenback, int devid, void *page);

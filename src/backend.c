@@ -20,6 +20,7 @@
 #include "backend.h"
 
 static xc_interface *xc_handle = NULL;
+static xc_gnttab *xcg_handle = NULL;
 struct xs_handle *xs_handle = NULL;
 static char domain_path[PATH_BUFSZ];
 static int domain_path_len = 0;
@@ -37,6 +38,10 @@ backend_init(int backend_domid)
     if (!xc_handle)
         goto fail_xc;
 
+    xcg_handle = xc_gnttab_open(NULL, 0);
+    if (!xcg_handle)
+        goto fail_xcg;
+
     tmp = xs_get_domain_path(xs_handle, backend_domid);
     if (!tmp)
         goto fail_domainpath;
@@ -46,6 +51,9 @@ backend_init(int backend_domid)
 
     return 0;
 fail_domainpath:
+    xc_gnttab_close(xcg_handle);
+    xcg_handle = NULL;
+fail_xcg:
     xc_interface_close(xc_handle);
     xc_handle = NULL;
 fail_xc:
@@ -66,6 +74,12 @@ backend_close(void)
     if (xc_handle)
         xc_interface_close(xc_handle);
     xc_handle = NULL;
+
+    if (xcg_handle)
+        xc_gnttab_close(xcg_handle);
+    xcg_handle = NULL;
+
+    return 0;
 }
 
 static int setup_watch(struct xen_backend *xenback, const char *type, int domid)
@@ -410,9 +424,6 @@ backend_map_shared_page(xen_backend_t xenback, int devid)
     int rc;
 
     rc = xs_read_fe_int(xendev, "page-ref", &mfn);
-    /* That node can also be called "ring-ref". Trying both */
-    if (rc)
-        rc = xs_read_fe_int(xendev, "ring-ref", &mfn);
     if (rc)
         return NULL;
 
@@ -421,9 +432,35 @@ backend_map_shared_page(xen_backend_t xenback, int devid)
                                 mfn);
 }
 
-EXTERNAL void
-backend_unmap_shared_page(xen_backend_t xenback, int devid, void *page)
+EXTERNAL void *
+backend_map_granted_ring(xen_backend_t xenback, int devid)
 {
-    munmap(page, XC_PAGE_SIZE);
+    struct xen_device *xendev = &xenback->devices[devid];
+    int ring;
+    int rc;
+
+    rc = xs_read_fe_int(xendev, "ring-ref", &ring);
+    if (rc)
+        return NULL;
+
+    return xc_gnttab_map_grant_ref(xcg_handle, xenback->domid,
+                                   ring, PROT_READ | PROT_WRITE);
 }
 
+EXTERNAL int
+backend_unmap_shared_page(xen_backend_t xenback, int devid, void *page)
+{
+    (void)xenback;
+    (void)devid;
+
+    return munmap(page, XC_PAGE_SIZE);
+}
+
+EXTERNAL int
+backend_unmap_granted_ring(xen_backend_t xenback, int devid, void *page)
+{
+    (void)xenback;
+    (void)devid;
+
+    return xc_gnttab_munmap(xcg_handle, page, 1);
+}
