@@ -285,7 +285,7 @@ static void update_device(struct xen_backend *xenback, int devid, char *path)
     char *node = NULL;
 
     if (xendev->dev == NULL)
-        xendev = alloc_device(xenback, devid);
+        return;
 
     if (xendev->be)
         node = get_node_from_path(xendev->be, path);
