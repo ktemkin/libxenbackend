@@ -19,11 +19,7 @@
 #ifndef __BACKEND_H__
 #define __BACKEND_H__
 
-#define PATH_BUFSZ 1024
-#define TOKEN_BUFSZ 64
-
-#define BACKEND_DEVICE_MAX 16
-
+/* String prepended to xs_watch() token. */
 #define MAGIC_STRING "libxenbackend:"
 
 struct xen_device
@@ -54,10 +50,13 @@ struct xen_backend
 
     backend_private_t           priv;
 
+#define PATH_BUFSZ 1024
     char                        path[PATH_BUFSZ];
     int                         path_len;
+#define TOKEN_BUFSZ 64
     char                        token[TOKEN_BUFSZ];
 
+#define BACKEND_DEVICE_MAX 16
     struct xen_device           devices[BACKEND_DEVICE_MAX];
 };
 

@@ -17,8 +17,10 @@
 #
 
 noinst_HEADERS = \
+	backend.h \
 	project.h \
-	prototypes.h
+	state.h \
+	xs.h
 
 include_HEADERS = xenbackend.h
 

@@ -17,10 +17,8 @@
  */
 
 #include "project.h"
-#include "backend.h"
 
-INTERNAL void
-backend_changed(struct xen_device *xendev, const char *node)
+void backend_changed(struct xen_device *xendev, const char *node)
 {
     struct xen_backend *xenback = xendev->backend;
 
@@ -38,8 +36,7 @@ backend_changed(struct xen_device *xendev, const char *node)
     }
 }
 
-INTERNAL void
-frontend_changed(struct xen_device *xendev, const char *node)
+void frontend_changed(struct xen_device *xendev, const char *node)
 {
     struct xen_backend *xenback = xendev->backend;
 
@@ -173,8 +170,7 @@ static void disconnect(struct xen_device *xendev, enum xenbus_state state)
 
 }
 
-INTERNAL void
-check_state(struct xen_device *xendev)
+void check_state(struct xen_device *xendev)
 {
     int rc = 0;
 
@@ -207,8 +203,7 @@ check_state(struct xen_device *xendev)
 
 }
 
-INTERNAL int
-check_state_early(struct xen_device *xendev)
+int check_state_early(struct xen_device *xendev)
 {
     int rc;
     int be_state;

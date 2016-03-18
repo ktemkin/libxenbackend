@@ -24,6 +24,7 @@
 # include <stdio.h>
 # include <stdlib.h>
 # include <stdint.h>
+# include <stdarg.h>
 
 # include <inttypes.h>
 # include <limits.h>
@@ -54,6 +55,8 @@
 
 # include "xenbackend.h"
 
-# include "prototypes.h"
+# include "xs.h"
+# include "state.h"
+# include "backend.h"
 
 #endif /* __PROJECT_H__ */

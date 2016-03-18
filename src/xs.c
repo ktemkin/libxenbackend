@@ -16,14 +16,9 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  */
 
-#include <stdarg.h>
-
 #include "project.h"
-#include "backend.h"
 
-
-INTERNAL int
-xs_write_str(const char *base, const char *node, const char *val)
+int xs_write_str(const char *base, const char *node, const char *val)
 {
     char abspath[PATH_BUFSZ];
 
@@ -33,8 +28,7 @@ xs_write_str(const char *base, const char *node, const char *val)
     return 0;
 }
 
-INTERNAL char *
-xs_read_str(const char *base, const char *node)
+char *xs_read_str(const char *base, const char *node)
 {
     char abspath[PATH_BUFSZ];
     unsigned int len;
@@ -43,8 +37,7 @@ xs_read_str(const char *base, const char *node)
     return xs_read(xs_handle, 0, abspath, &len);
 }
 
-INTERNAL int
-xs_write_int(const char *base, const char *node, int ival)
+int xs_write_int(const char *base, const char *node, int ival)
 {
     char val[32];
 
@@ -52,8 +45,7 @@ xs_write_int(const char *base, const char *node, int ival)
     return xs_write_str(base, node, val);
 }
 
-INTERNAL int
-xs_read_int(const char *base, const char *node, int *ival)
+int xs_read_int(const char *base, const char *node, int *ival)
 {
     char *val;
     int rc = -1;
@@ -65,45 +57,38 @@ xs_read_int(const char *base, const char *node, int *ival)
     return rc;
 }
 
-INTERNAL int
-xs_write_be_str(struct xen_device *xendev, const char *node, const char *val)
+int xs_write_be_str(struct xen_device *xendev, const char *node, const char *val)
 {
     return xs_write_str(xendev->be, node, val);
 }
 
-INTERNAL int
-xs_write_be_int(struct xen_device *xendev, const char *node, int ival)
+int xs_write_be_int(struct xen_device *xendev, const char *node, int ival)
 {
     return xs_write_int(xendev->be, node, ival);
 }
 
-INTERNAL char *
-xs_read_be_str(struct xen_device *xendev, const char *node)
+char *xs_read_be_str(struct xen_device *xendev, const char *node)
 {
     return xs_read_str(xendev->be, node);
 }
 
-INTERNAL int
-xs_read_be_int(struct xen_device *xendev, const char *node, int *ival)
+int xs_read_be_int(struct xen_device *xendev, const char *node, int *ival)
 {
     return xs_read_int(xendev->be, node, ival);
 }
 
-INTERNAL char *
-xs_read_fe_str(struct xen_device *xendev, const char *node)
+char *xs_read_fe_str(struct xen_device *xendev, const char *node)
 {
     return xs_read_str(xendev->fe, node);
 }
 
-INTERNAL int
-xs_read_fe_int(struct xen_device *xendev, const char *node, int *ival)
+int xs_read_fe_int(struct xen_device *xendev, const char *node, int *ival)
 {
     return xs_read_int(xendev->fe, node, ival);
 }
 
-EXTERNAL int
-backend_print(xen_backend_t xenback, int devid, const char *node,
-              const char *fmt, ...)
+int backend_print(xen_backend_t xenback, int devid, const char *node,
+                  const char *fmt, ...)
 {
     char buff[1024];
     struct xen_device *xendev = &xenback->devices[devid];
@@ -123,9 +108,8 @@ backend_print(xen_backend_t xenback, int devid, const char *node,
     return rc;
 }
 
-EXTERNAL int
-backend_scan(xen_backend_t xenback, int devid, const char *node,
-             const char *fmt, ...)
+int backend_scan(xen_backend_t xenback, int devid, const char *node,
+                 const char *fmt, ...)
 {
     struct xen_device *xendev = &xenback->devices[devid];
     va_list ap;
@@ -145,9 +129,8 @@ backend_scan(xen_backend_t xenback, int devid, const char *node,
     return rc;
 }
 
-EXTERNAL int
-frontend_scan(xen_backend_t xenback, int devid, const char *node,
-              const char *fmt, ...)
+int frontend_scan(xen_backend_t xenback, int devid, const char *node,
+                  const char *fmt, ...)
 {
     struct xen_device *xendev = &xenback->devices[devid];
     va_list ap;
