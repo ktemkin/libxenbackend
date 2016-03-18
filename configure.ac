@@ -16,140 +16,65 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #
 
-# Prelude.
+#
+# Autoconf initialisation.
+#
+AC_INIT(libxenbackend, 0.1)
 AC_PREREQ(2.13)
-AC_INIT(src/backend.c)
+AC_CONFIG_HEADERS(src/config.h)
+AC_CONFIG_SRCDIR(src/backend.c)
+AM_INIT_AUTOMAKE([foreign -Wall -Werror])
 
-LT_INIT
+#
+# Version management.
+# +1    : 0     Interface changes breaking retro-compatibility.
+# 0     : +1    Internal changes not breaking retro-compatibility.
+#
+VERSION_MAJOR=0
+VERSION_MINOR=1
+AC_DEFINE_UNQUOTED([VERSION_MAJOR], [$VERSION_MAJOR], [libxenbackend major version number])
+AC_DEFINE_UNQUOTED([VERSION_MINOR], [$VERSION_MINOR], [libxenbackend minor version number])
 
-LIBXENBACKEND_MAJOR_VERSION=`cat $srcdir/version-major`
-LIBXENBACKEND_MINOR_VERSION=`cat $srcdir/version-minor`
-LIBXENBACKEND_MICRO_VERSION=`cat $srcdir/version-micro`
+#
+# Standard checks.
+#
+AC_PROG_CC
+AC_PROG_CPP
+AC_PROG_INSTALL
+AC_PROG_LN_S
+AC_PROG_MAKE_SET
+AC_PROG_RANLIB
+AM_PROG_AR
 
-LIBXENBACKEND_INTERFACE_VERSION_MIN=$LIBXENBACKEND_MINOR_VERSION
-LIBXENBACKEND_INTERFACE_VERSION_MAX=$LIBXENBACKEND_MINOR_VERSION
-LIBXENBACKEND_INTERFACE_REVISION=1
-
-LIBXENBACKEND_VERSION=$LIBXENBACKEND_MAJOR_VERSION.$LIBXENBACKEND_MINOR_VERSION.$LIBXENBACKEND_MICRO_VERSION
-
-AC_SUBST(LIBXENBACKEND_MAJOR_VERSION)
-AC_SUBST(LIBXENBACKEND_MINOR_VERSION)
-AC_SUBST(LIBXENBACKEND_MICRO_VERSION)
-AC_SUBST(LIBXENBACKEND_VERSION)
-
-AC_SUBST(LIBXENBACKEND_INTERFACE_VERSION_MIN)
-AC_SUBST(LIBXENBACKEND_INTERFACE_VERSION_MAX)
-AC_SUBST(LIBXENBACKEND_INTERFACE_REVISION)
-
-LT_RELEASE=$LIBXENBACKEND_MAJOR_VERSION.$LIBXENBACKEND_MINOR_VERSION
-LT_CURRENT=$LIBXENBACKEND_INTERFACE_VERSION_MAX
-LT_REVISION=$LIBXENBACKEND_MICRO_VERSION
-LT_AGE=`expr $LIBXENBACKEND_INTERFACE_VERSION_MAX - $LIBXENBACKEND_INTERFACE_VERSION_MIN`
-
-AC_SUBST(LT_RELEASE)
+#
+# Libtool version system.
+#
+LT_CURRENT=$VERSION_MAJOR
+LT_REVISION=1
+LT_AGE=$VERSION_MAJOR
+LT_RELEASE=$VERSION_MAJOR.$VERSION_MINOR
 AC_SUBST(LT_CURRENT)
 AC_SUBST(LT_REVISION)
 AC_SUBST(LT_AGE)
+AC_SUBST(LT_RELEASE)
 
-VERSION=$LIBXENBACKEND_VERSION
-PACKAGE=libxenbackend
+LT_INIT
 
-AM_INIT_AUTOMAKE($PACKAGE,$VERSION)
-
-# Checks for programs.
-AC_PROG_CC
-AM_PROG_CC_C_O
-PKG_PROG_PKG_CONFIG([0.22])
-AC_PROG_AWK
-AC_CHECK_PROG(MD5SUM, md5sum, md5sum)
-AC_CHECK_PROG(GREP, grep, grep)
-AC_CHECK_PROG(SED, sed, sed)
-
-# Checks for header files.
-AC_CHECK_HEADERS([unistd.h fcntl.h errno.h stdlib.h stdint.h stropts.h syslog.h string.h stdio.h stdarg.h])
-AC_CHECK_HEADERS([sys/types.h sys/stat.h sys/mman.h])
-AC_CHECK_HEADERS([pthread.h])
-
-# Checks for typedefs, structures, and compiler characteristics.
+# Compiler capabilities.
 AC_C_INLINE
 AC_C_CONST
-AC_HEADER_TIME
-AC_STRUCT_TM
 
-# Checks for libraries.
+# Checks for header files.
+AC_CHECK_HEADERS([xen/io/xenbus.h], [], AC_MSG_ERROR([xenbus header is missing.]))
 
-ORIG_LIBS="${LIBS}"
-LIBS=""
-AC_SEARCH_LIBS([pthread_mutex_lock], [pthread])
-PTHREAD_LIB="${LIBS}"
-LIBS="${ORIG_LIBS}"
-AC_SUBST(PTHREAD_LIB)
+# Required libraries.
+AC_CHECK_LIB([pthread], [pthread_mutex_lock])
+AC_CHECK_LIB([xenstore], [xs_open])
+AC_CHECK_LIB([xenctrl], [xc_interface_open])
 
+AC_CONFIG_FILES([libxenbackend-config], [chmod +x libxenbackend-config])
+AC_OUTPUT([Makefile
+           src/Makefile
+           libxenbackend.pc
+           ])
 
-AC_ARG_WITH(libxc,
-            AC_HELP_STRING([--with-libxc=PATH],
-                           [Path to prefix where where libxc and xen were installed]),
-            LIBXC_PREFIX=$with_libxc, [])
-
-case "x$LIBXC_PREFIX" in
-        x|xno|xyes)
-                LIBXC_INC=""
-                LIBXC_LIB="-lxenctrl"
-                ;;
-        *)
-                LIBXC_INC="-I${LIBXC_PREFIX}/include"
-                LIBXC_LIB="-L${LIBXC_PREFIX}/lib -lxenctrl"
-                ;;
-esac
-
-AC_SUBST(LIBXC_INC)
-AC_SUBST(LIBXC_LIB)
-
-ORIG_LDFLAGS="${LDFLAGS}"
-ORIG_CPPFLAGS="${CPPFLAGS}"
-LDFLAGS="${LDFLAGS} ${LIBXC_LIB}"
-CPPFLAGS="${CPPFLAGS} ${LIBXC_INC}"
-AC_CHECK_HEADERS([xenctrl.h])
-AC_CHECK_FUNCS([xc_version xc_domain_iommu_x_mapping])
-LDFLAGS="${ORIG_LDFLAGS}"
-CPPFLAGS="${ORIG_CPPFLAGS}"
-
-# Xenstore
-
-AC_ARG_WITH([libxenstore],
-            AC_HELP_STRING([--with-libxenstore=PATH], [Path to prefix where libxenstore was installed.]),
-            [LIBXENSTORE_PREFIX=$with_libxenstore], [])
-
-case "x$LIBXENSTORE_PREFIX" in
-        x|xno)
-                LIBXENSTORE_INC=""
-                LIBXENSTORE_LIB="-lxenstore"
-                ;;
-        xyes)
-                LIBXENSTORE_INC=""
-                LIBXENSTORE_LIB="-lxenstore"
-                ;;
-        *)
-                LIBXENSTORE_INC="-I${LIBXENSTORE_PREFIX}/include"
-                LIBXENSTORE_LIB="-L${LIBXENSTORE_PREFIX}/lib -lxenstore"
-                ;;
-esac
-
-AC_SUBST(LIBXENSTORE_INC)
-AC_SUBST(LIBXENSTORE_LIB)
-
-
-have_libxenstore=true
-
-# Output files.
-AC_CONFIG_MACRO_DIR([m4])
-AM_CONFIG_HEADER(src/config.h)
-
-AC_CONFIG_FILES([Makefile
-                 src/Makefile
-                 src/xenbackend-head.h
-                 libxenbackend.pc.src])
-AC_CONFIG_FILES([libxenbackend-config.src],
-                [chmod +x libxenbackend-config.src])
-
-AC_OUTPUT
