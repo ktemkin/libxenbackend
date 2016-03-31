@@ -3,8 +3,8 @@ exec_prefix=@exec_prefix@
 libdir=@libdir@
 includedir=@includedir@
 
-Name: libxenbackend
+Name: @PACKAGE_NAME@
 Description: Xen PV Backend Library
-Version: @VERSION@
-Libs: -L${libdir} -lxenbackend @LIBXC_LIB@ @LIBXENSTORE_LIB@ @PTHREAD_LIB@
+Version: @PACKAGE_VERSION@
+Libs: -L${libdir} -lxenbackend @LIBS@
 Cflags: -I${includedir}

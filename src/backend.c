@@ -25,8 +25,7 @@ struct xs_handle *xs_handle = NULL;
 static char domain_path[PATH_BUFSZ];
 static int domain_path_len = 0;
 
-EXTERNAL int
-backend_init(int backend_domid)
+int backend_init(int backend_domid)
 {
     char *tmp;
 
@@ -64,8 +63,7 @@ fail_xs:
 }
 
 /* Close all file descriptors opened by backend_init */
-EXTERNAL int
-backend_close(void)
+int backend_close(void)
 {
     if (xs_handle)
         xs_daemon_close(xs_handle);
@@ -205,11 +203,8 @@ static void scan_devices(struct xen_backend *xenback)
     }
 }
 
-EXTERNAL xen_backend_t
-backend_register(const char *type,
-                 int domid,
-                 struct xen_backend_ops *ops,
-                 backend_private_t priv)
+xen_backend_t backend_register(const char *type, int domid, struct
+                               xen_backend_ops *ops, backend_private_t priv)
 {
     struct xen_backend *xenback;
     int rc;
@@ -234,8 +229,7 @@ backend_register(const char *type,
     return xenback;
 }
 
-EXTERNAL void
-backend_release(xen_backend_t xenback)
+void backend_release(xen_backend_t xenback)
 {
     int i;
 
@@ -299,8 +293,7 @@ static void update_frontend(struct xen_device *xendev, char *node)
     check_state(xendev);
 }
 
-EXTERNAL void
-backend_xenstore_handler(void *unused)
+void backend_xenstore_handler(void *unused)
 {
     char **w;
     unsigned int count;
@@ -343,14 +336,12 @@ backend_xenstore_handler(void *unused)
     free(w);
 }
 
-EXTERNAL int
-backend_xenstore_fd(void)
+int backend_xenstore_fd(void)
 {
     return xs_fileno(xs_handle);
 }
 
-EXTERNAL int
-backend_bind_evtchn(xen_backend_t xenback, int devid)
+int backend_bind_evtchn(xen_backend_t xenback, int devid)
 {
     struct xen_device *xendev = &xenback->devices[devid];
     int remote_port;
@@ -372,8 +363,7 @@ backend_bind_evtchn(xen_backend_t xenback, int devid)
     return xc_evtchn_fd(xendev->evtchndev);
 }
 
-EXTERNAL void
-backend_unbind_evtchn(xen_backend_t xenback, int devid)
+void backend_unbind_evtchn(xen_backend_t xenback, int devid)
 {
     struct xen_device *xendev = &xenback->devices[devid];
 
@@ -384,24 +374,21 @@ backend_unbind_evtchn(xen_backend_t xenback, int devid)
     xendev->local_port = -1;
 }
 
-EXTERNAL int
-backend_evtchn_notify(xen_backend_t xenback, int devid)
+int backend_evtchn_notify(xen_backend_t xenback, int devid)
 {
     struct xen_device *xendev = &xenback->devices[devid];
 
     return xc_evtchn_notify(xendev->evtchndev, xendev->local_port);
 }
 
-EXTERNAL void *
-backend_evtchn_priv(xen_backend_t xenback, int devid)
+void *backend_evtchn_priv(xen_backend_t xenback, int devid)
 {
     struct xen_device *xendev = &xenback->devices[devid];
 
     return xendev;
 }
 
-EXTERNAL void
-backend_evtchn_handler(void *priv)
+void backend_evtchn_handler(void *priv)
 {
     struct xen_device *xendev = priv;
     struct xen_backend *xenback = xendev->backend;
@@ -416,8 +403,7 @@ backend_evtchn_handler(void *priv)
         xenback->ops->event(xendev->dev);
 }
 
-EXTERNAL void *
-backend_map_shared_page(xen_backend_t xenback, int devid)
+void *backend_map_shared_page(xen_backend_t xenback, int devid)
 {
     struct xen_device *xendev = &xenback->devices[devid];
     int mfn;
@@ -432,8 +418,7 @@ backend_map_shared_page(xen_backend_t xenback, int devid)
                                 mfn);
 }
 
-EXTERNAL void *
-backend_map_granted_ring(xen_backend_t xenback, int devid)
+void *backend_map_granted_ring(xen_backend_t xenback, int devid)
 {
     struct xen_device *xendev = &xenback->devices[devid];
     int ring;
@@ -447,8 +432,7 @@ backend_map_granted_ring(xen_backend_t xenback, int devid)
                                    ring, PROT_READ | PROT_WRITE);
 }
 
-EXTERNAL int
-backend_unmap_shared_page(xen_backend_t xenback, int devid, void *page)
+int backend_unmap_shared_page(xen_backend_t xenback, int devid, void *page)
 {
     (void)xenback;
     (void)devid;
@@ -456,8 +440,7 @@ backend_unmap_shared_page(xen_backend_t xenback, int devid, void *page)
     return munmap(page, XC_PAGE_SIZE);
 }
 
-EXTERNAL int
-backend_unmap_granted_ring(xen_backend_t xenback, int devid, void *page)
+int backend_unmap_granted_ring(xen_backend_t xenback, int devid, void *page)
 {
     (void)xenback;
     (void)devid;

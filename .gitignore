@@ -14,14 +14,10 @@ depcomp
 i586-oe-linux-libtool
 install-sh
 libxenbackend-config
-libxenbackend-config.src
 libxenbackend.pc
-libxenbackend.pc.src
 ltmain.sh
 m4/
 missing
 src/.libs/
 src/stamp-h1
-src/xenbackend-head.h
-src/xenbackend.h
 version.sed

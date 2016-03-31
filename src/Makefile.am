@@ -1,16 +1,4 @@
 #
-#
-# Makefile.am:
-#
-#
-# $Id:$
-#
-# $Log:$
-#
-#
-#
-
-#
 # Copyright (c) 2012 Citrix Systems, Inc.
 # 
 # This library is free software; you can redistribute it and/or
@@ -28,38 +16,23 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #
 
+noinst_HEADERS = \
+	backend.h \
+	project.h \
+	state.h \
+	xs.h
 
-INCLUDES = ${LIBXENSTORE_INC} ${LIBXC_INC}
+include_HEADERS = xenbackend.h
 
-SRCS = xs.c state.c backend.c
-CPROTO = cproto
+libxenbackend_la_SOURCES = \
+	xs.c \
+	state.c \
+	backend.c
 
-XENBACKENDSRCS=${SRCS}
-
-noinst_HEADERS = project.h prototypes.h xenbackend-tail.h ext_prototypes.h
-
-libxenbackend_la_SOURCES = ${XENBACKENDSRCS}
 libxenbackend_la_LDFLAGS = \
 	-version-info $(LT_CURRENT):$(LT_REVISION):$(LT_AGE) \
 	-release $(LT_RELEASE) \
 	-export-dynamic
 
-BUILT_SOURCES = xenbackend.h
-
 lib_LTLIBRARIES = libxenbackend.la
-
-include_HEADERS = xenbackend.h
-AM_CFLAGS = -g -W -Wall
-
-xenbackend.h: xenbackend-head.h ext_prototypes.h xenbackend-tail.h
-	cat xenbackend-head.h ext_prototypes.h xenbackend-tail.h > xenbackend.h
-
-protos:
-	echo > prototypes.h
-	echo > ext_prototypes.h
-	cat xenbackend-head.h ext_prototypes.h xenbackend-tail.h > xenbackend.h
-	${CPROTO} -E "${CPP} ${CPPFLAGS}" -DINT_PROTOS ${INCLUDES} ${SRCS} > prototypes.tmp
-	mv -f prototypes.tmp prototypes.h
-	${CPROTO} -E "${CPP} ${CPPFLAGS}" -DEXT_PROTOS ${INCLUDES} ${SRCS} > ext_prototypes.h
-	cat xenbackend-head.h ext_prototypes.h xenbackend-tail.h > xenbackend.h
 
