@@ -48,6 +48,13 @@
 # include <sys/types.h>
 # include <sys/ioctl.h>
 
+/* These defines are necessary to ensure we work on modern Xen.
+ * Once we don't have to support older versions of Xen, these should be dropped,
+ * and we should move to the new APIs. */
+#define XC_WANT_COMPAT_MAP_FOREIGN_API
+#define XC_WANT_COMPAT_GNTTAB_API
+#define XC_WANT_COMPAT_EVTCHN_API
+
 # include <xenctrl.h>
 # include <xenstore.h>
 
